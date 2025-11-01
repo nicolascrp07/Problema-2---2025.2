@@ -65,12 +65,12 @@ module TopLevel (
     and detecta_borda1(botao_sfinal1, acao_key1, not_acao1_dly);
     
     wire pilha_empilha, pilha_sel_sw, ula_inicia; // Sinais de controle da UC.
-    wire [2:0] ula_op_code_fsm; // Código de operação vindo da UC para a ULA.
+    wire [2:0] ula_op_code; // Código de operação vindo da UC para a ULA.
     wire ula_pronto; // Sinal da ULA indicando que a operação foi concluída.
     
     // A UC orquestra as operações da ULA e da Pilha com base nos sinais dos botões.
     UnidadeDeControle uc (
-        .pilha_empilha(pilha_empilha), .pilha_sel_sw(pilha_sel_sw), .ula_inicia(ula_inicia), .ula_op_code(ula_op_code_fsm), 
+        .pilha_empilha(pilha_empilha), .pilha_sel_sw(pilha_sel_sw), .ula_inicia(ula_inicia), .ula_op_code(ula_op_code), 
         .Clk(clk_lento), .Reset(reset_global), .KEY0(botao_sfinal0), .KEY1(botao_sfinal1), .SW(SW[7:0]), .ula_pronto(ula_pronto), 
         .empilha_resultado(flag_pronto)
     );
@@ -88,11 +88,11 @@ module TopLevel (
     // O OpCode deve ser mantido durante operações longas.
     FlipFlopD ff_start_dly (.Q(ula_start_dly), .D(ula_inicia), .Clk(clk_lento), .Reset(reset_global));
 
-    // MUX do OpCode: Se 'ula_start_dly'=1 (iniciando), carrega o novo OpCode da FSM (ula_op_code_fsm).
+    // MUX do OpCode: Se 'ula_start_dly'=1 (iniciando), carrega o novo OpCode (ula_op_code).
     // Senão (ula_start_dly=0), mantém o OpCode antigo (ula_op_code_registrado).
-    MUX2x1_1B mux_op0 (.S(op_code_d[0]), .A(ula_op_code_registrado[0]), .B(ula_op_code_fsm[0]), .Sel(ula_start_dly));
-    MUX2x1_1B mux_op1 (.S(op_code_d[1]), .A(ula_op_code_registrado[1]), .B(ula_op_code_fsm[1]), .Sel(ula_start_dly));
-    MUX2x1_1B mux_op2 (.S(op_code_d[2]), .A(ula_op_code_registrado[2]), .B(ula_op_code_fsm[2]), .Sel(ula_start_dly));
+    MUX2x1_1B mux_op0 (.S(op_code_d[0]), .A(ula_op_code_registrado[0]), .B(ula_op_code[0]), .Sel(ula_start_dly));
+    MUX2x1_1B mux_op1 (.S(op_code_d[1]), .A(ula_op_code_registrado[1]), .B(ula_op_code[1]), .Sel(ula_start_dly));
+    MUX2x1_1B mux_op2 (.S(op_code_d[2]), .A(ula_op_code_registrado[2]), .B(ula_op_code[2]), .Sel(ula_start_dly));
 
     // Registrador que armazena o OpCode para a ULA.
     FlipFlopD reg_op0 (.Q(ula_op_code_registrado[0]), .D(op_code_d[0]), .Clk(clk_lento), .Reset(reset_global));
@@ -159,4 +159,5 @@ module TopLevel (
     
     // Exibe o símbolo da operação atual (op_code_registrado) no display HEX5.
     DecodificadorOperacao operacao (.SW9(ula_op_code_registrado[2]), .KEY1(ula_op_code_registrado[1]), .KEY0(ula_op_code_registrado[0]), .HEX(HEX5));
+
 endmodule
